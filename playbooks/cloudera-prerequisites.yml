@@ -1,9 +1,25 @@
-- hosts: cloudera
-remote_user: root
-tasks:
-- selinux: state=disabled
-- sysctl: name=net.ipv6.conf.all.disable_ipv6 value=1 state=present
-- sysctl: name=net.ipv6.conf.default.disable_ipv6 value=1 state=present
-- sysctl: name=vm.swappiness value=0 state=present
-- authorized_key: user=root key="{{ lookup('file', '/root/.ssh/id_rsa.pub') }}"
-- copy: src=/etc/hosts dest=/etc/hosts owner=root group=root mode=0644
+---
+
+- hosts: eric_cluster
+  remote_user: root
+  tasks:
+  - name: disable selinux
+    selinux: state=disabled
+  - name: disable IPv6 all
+    sysctl: 
+        name: net.ipv6.conf.all.disable_ipv6 
+        value: 1 
+        state: present
+  - name: disable IPv6 default
+    sysctl: name=net.ipv6.conf.default.disable_ipv6 value=1 state=present
+  - name: disable swappiness 
+    sysctl: name=vm.swappiness value=1 state=present
+  - name: Install package
+    yum:
+      name: "{{ item.name }}"
+      state: "{{ item.state }}"
+      with_items:
+        - { name: 'ntp', state: 'present' }
+
+  roles:
+  - { role: ansiblebit.oracle-java, oracle_java_rpm_url: 'http://download.oracle.com/otn-pub/java/jdk/8u112-b15/jdk-8u112-linux-x64.rpm', oracle_java_rpm_filename: jdk-8u112-linux-x64.rpm, oracle_java_version: 8, oracle_java_version_update: 112, oracle_java_version_build: 15, oracle_java_set_as_default: yes }
